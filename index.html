@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KHÔNG PHẢI FLAPPY BIRD</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Coiny&family=VT323&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @font-face {
+            font-family: 'iCiel Crocante';
+            src: local('iCiel Crocante'), local('Coiny'), url('https://fonts.gstatic.com/s/coiny/v15/we4U1y_3363vGf46.woff2') format('woff2');
+            font-display: swap;
+        }
+
+        body {
+            font-family: 'VT323', monospace;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .font-crocante {
+            font-family: 'iCiel Crocante', 'Coiny', cursive, sans-serif;
+        }
+
+        .font-bungee {
+            font-family: 'Bungee', cursive, sans-serif;
+        }
+
+        .text-shadow-neon {
+            text-shadow: 
+                0 0 5px rgba(255, 255, 255, 0.8),
+                0 0 10px rgba(239, 68, 68, 0.8),
+                0 0 20px rgba(239, 68, 68, 0.6),
+                3px 3px 0px #000;
+        }
+
+        .text-shadow-arcade {
+            text-shadow: 
+                2px 2px 0px #000,
+                -2px -2px 0px #000,
+                2px -2px 0px #000,
+                -2px 2px 0px #000,
+                0px 4px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .arcade-card {
+            background: rgba(15, 23, 42, 0.92);
+            border: 4px solid #f59e0b;
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.4), inset 0 0 15px rgba(245, 158, 11, 0.2);
+        }
+
+        canvas {
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col items-center justify-center p-2">
+
+    <!-- Game Wrapper -->
+    <div class="relative w-full max-w-[420px] h-full max-h-[750px] flex flex-col items-center justify-center rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-500/30 bg-slate-900">
+        
+        <!-- Game Canvas -->
+        <canvas id="gameCanvas" class="w-full h-full object-contain cursor-pointer"></canvas>
+
+        <!-- UI Overlay: In-Game Score -->
+        <div id="inGameScore" class="absolute top-6 left-1/2 -translate-x-1/2 text-6xl font-bold text-white tracking-widest text-shadow-arcade pointer-events-none hidden z-10">
+            0
+        </div>
+
+        <!-- Audio Control Buttons -->
+        <div class="absolute top-4 right-4 flex gap-2 z-30">
+            <button id="bgmBtn" class="bg-slate-800/80 hover:bg-slate-700 text-emerald-400 border-2 border-emerald-500/50 rounded-full p-2 text-xs font-bold transition flex items-center justify-center shadow-lg active:scale-95">
+                🎵 BGM: ON
+            </button>
+            <button id="soundBtn" class="bg-slate-800/80 hover:bg-slate-700 text-amber-400 border-2 border-amber-500/50 rounded-full p-2 text-xs font-bold transition flex items-center justify-center shadow-lg active:scale-95">
+                🔊 SFX: ON
+            </button>
+        </div>
+
+        <!-- Start Screen -->
+        <div id="startScreen" class="absolute inset-0 bg-slate-950/75 backdrop-blur-sm flex flex-col items-center justify-between p-6 z-20 text-center transition-opacity duration-300">
+            <div class="mt-8 flex flex-col items-center">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-amber-400 tracking-wider text-shadow-arcade font-crocante leading-tight">
+                    KHÔNG PHẢI<br><span class="text-rose-500">FLAPPY BIRD</span>
+                </h1>
+                <p class="text-slate-300 text-lg mt-3 font-sans">Giai điệu: <span class="text-amber-300 font-bold">きゃぴ (Instrumental)</span></p>
+            </div>
+
+            <div class="flex flex-col items-center gap-3">
+                <div class="w-16 h-16 bg-amber-500/20 border-2 border-amber-400 rounded-full flex items-center justify-center animate-bounce mb-2">
+                    <svg class="w-8 h-8 text-amber-300" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-12.5v7l6-3.5-6-3.5z"/>
+                    </svg>
+                </div>
+                <p class="text-xl text-amber-200 animate-pulse font-sans font-semibold">Chạm màn hình hoặc ấn Space để bay</p>
+            </div>
+
+            <button id="startBtn" class="mb-6 w-full py-4 bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 text-2xl font-black rounded-2xl shadow-lg transform active:scale-95 transition tracking-wider border-b-4 border-rose-800">
+                BẮT ĐẦU CHƠI
+            </button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 z-20 text-center hidden opacity-0 transition-all duration-300">
+            
+            <div id="gameOverCard" class="arcade-card w-full max-w-xs rounded-3xl p-6 flex flex-col items-center transform scale-95 transition-transform duration-300">
+                
+                <!-- 2 dòng chữ khi thua với phông iCiel Crocante / Coiny / Bungee -->
+                <div class="flex flex-col items-center gap-1 my-2">
+                    <h2 class="text-3xl sm:text-4xl font-crocante text-rose-500 text-shadow-neon tracking-wide transform -rotate-2">
+                        Bạn non thế
+                    </h2>
+                    <h3 class="text-xl sm:text-2xl font-bungee text-amber-300 text-shadow-arcade tracking-normal mt-1 transform rotate-1">
+                        chơi lại đi bạn sợ à ?
+                    </h3>
+                </div>
+
+                <!-- Stats Board -->
+                <div class="w-full bg-slate-900/90 border-2 border-slate-700 rounded-2xl p-4 my-4 flex justify-around items-center">
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider font-sans font-bold">Điểm số</span>
+                        <span id="finalScore" class="text-4xl font-bold text-white">0</span>
+                    </div>
+                    <div class="h-8 w-px bg-slate-700"></div>
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs text-amber-400 uppercase tracking-wider font-sans font-bold">Kỷ Lục</span>
+                        <span id="bestScore" class="text-4xl font-bold text-amber-400">0</span>
+                    </div>
+                </div>
+
+                <!-- Restart Button -->
+                <button id="restartBtn" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xl font-black rounded-xl shadow-lg transform active:scale-95 transition tracking-wider border-b-4 border-teal-800 mt-2">
+                    THỬ LẠI NGAY
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎵 BACKGROUND MUSIC AUDIO ELEMENT -->
+    <audio id="bgmAudio" loop preload="auto">
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8267a22.mp3?filename=japanese-anime-upbeat-happy-game-110241.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 📜 JAVASCRIPT LOGIC GAME -->
+    <script>
+        // --- WEB AUDIO API SYNTHESIZER FOR SFX ---
+        class SoundEffects {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playJump() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.12);
+            }
+
+            playScore() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, this.ctx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.08); // E5
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.25);
+            }
+
+            playHit() {
+                if (!this.enabled) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.
